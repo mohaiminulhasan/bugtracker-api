@@ -6,5 +6,5 @@ urlpatterns = [
   path('api-token-auth/', views.CustomAuthToken.as_view()),
 
   path('projects/', views.ProjectsListAPIView.as_view()),
-  path('tickets/', views.TicketListAPIView.as_view()),
+  path('tickets/<slug:projectslug>/', views.TicketListAPIView.as_view()),
 ]

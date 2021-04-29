@@ -49,6 +49,8 @@ class ProjectsListAPIView(generics.ListAPIView):
         return chain(owned_projects, assigned_projects)
 
 class TicketListAPIView(generics.ListAPIView):
-    queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Ticket.objects.filter(project=Project.objects.get(slug=self.kwargs['projectslug']))
