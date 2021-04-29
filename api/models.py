@@ -1,18 +1,28 @@
 from django.db import models
+from django.utils.text import slugify
 
 from django.conf import settings
 
 # Create your models here.
 class Project(models.Model):
   created = models.DateTimeField(auto_now_add=True)
-  owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+  owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_projects')
   title = models.CharField(max_length=255)
+  slug = models.SlugField(max_length=255, blank=True, null=True)
+  users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
 
   def __str__(self):
     return self.title
+  
+  def save(self, *args, **kwargs):
+    self.slug = slugify(self.title)
+    super(Project, self).save(*args, *kwargs)
 
 
 class Ticket(models.Model):
+  ''' If you add more fields to this class, please
+      update the list of field names in the signals file 
+      under log_history function'''
   PRIORITY_CHOICES = [
     ('H', 'High'),
     ('M', 'Medium'),
@@ -32,7 +42,7 @@ class Ticket(models.Model):
   ]
   created = models.DateTimeField(auto_now_add=True)
   title = models.CharField(max_length=30)
-  description = models.CharField(max_length=255)
+  description = models.CharField(max_length=255, blank=True, null=True)
   project = models.ForeignKey(Project, on_delete=models.CASCADE)
   developer = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assignedtickets', on_delete=models.CASCADE)
   submitter = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='submittedtickets', on_delete=models.CASCADE)
@@ -52,3 +62,16 @@ class TicketComment(models.Model):
 
   def __str__(self):
     return "%s: %s" % (self.author, self.body)
+
+class TicketHistory(models.Model):
+  ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+  field = models.CharField(max_length=30)
+  old_value = models.CharField(max_length=30)
+  new_value = models.CharField(max_length=30)
+  created = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return self.ticket.title
+
+  class Meta:
+    verbose_name_plural = "Ticket histories"

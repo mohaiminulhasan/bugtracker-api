@@ -1,9 +1,15 @@
+from itertools import chain
+
 from datetime import datetime
 from django.shortcuts import render
 from rest_framework.response import Response
+from rest_framework import generics, permissions
 
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+
+from .models import Project, Ticket
+from .serializers import ProjectSerializer, TicketSerializer
 
 # Create your views here.
 class CustomAuthToken(ObtainAuthToken):
@@ -32,3 +38,17 @@ class CustomAuthToken(ObtainAuthToken):
                 'last_name': user.last_name
             },
         })
+
+class ProjectsListAPIView(generics.ListAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        owned_projects = Project.objects.filter(owner=self.request.user)
+        assigned_projects = self.request.user.project_set.all()
+        return chain(owned_projects, assigned_projects)
+
+class TicketListAPIView(generics.ListAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+    permission_classes = [permissions.IsAuthenticated]
