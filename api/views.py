@@ -5,10 +5,11 @@ from datetime import datetime
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import generics, permissions
+from rest_framework.decorators import api_view
 
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 
 from .models import Project, Ticket
 from .serializers import ProjectSerializer, TicketSerializer, UserSerializer
@@ -53,6 +54,13 @@ class ProjectsListAPIView(generics.ListAPIView):
             key=attrgetter('created')
             )
 
+class OwnedProjectListAPIView(generics.ListAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Project.objects.filter(owner=self.request.user)
+
 class TicketListAPIView(generics.ListAPIView):
     serializer_class = TicketSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -65,7 +73,6 @@ class SingleUserListAPIView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        User = get_user_model()
         project = Project.objects.get(slug=self.kwargs['projectslug'])
 
         owner = User.objects.filter(id=project.owner.id)
@@ -79,8 +86,25 @@ class TeamUserListAPIView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        User = get_user_model()
         project = Project.objects.get(slug=self.kwargs['projectslug'])
         return project.users.all()
-        
-        
+
+# use permission
+@api_view(http_method_names=['PUT'])
+def add_to_team(request, username, projectslug):
+    user = User.objects.get(username=username)
+    project = Project.objects.get(slug=projectslug)
+    if (user not in project.users.all()):
+        project.users.add(user)
+        return Response({ 'response': 'OK', 'id': user.id })
+    return Response({ 'response': 'Invalid' })
+
+# use permission
+@api_view(http_method_names=['PUT'])
+def remove_from_team(request, username, projectslug):
+    user = User.objects.get(username=username)
+    project = Project.objects.get(slug=projectslug)
+    if (user in project.users.all()):
+        project.users.remove(user)
+        return Response({ 'response': 'OK', 'id': user.id })
+    return Response({ 'response': 'Invalid' })
