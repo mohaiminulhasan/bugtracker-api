@@ -1,4 +1,5 @@
 from itertools import chain
+from operator import attrgetter
 
 from datetime import datetime
 from django.shortcuts import render
@@ -46,7 +47,10 @@ class ProjectsListAPIView(generics.ListAPIView):
     def get_queryset(self):
         owned_projects = Project.objects.filter(owner=self.request.user)
         assigned_projects = self.request.user.project_set.all()
-        return chain(owned_projects, assigned_projects)
+        return sorted(
+            chain(owned_projects, assigned_projects),
+            key=attrgetter('created')
+            )
 
 class TicketListAPIView(generics.ListAPIView):
     serializer_class = TicketSerializer

@@ -22,3 +22,11 @@ def log_history(sender, instance, **kwargs):
     new_value = getattr(instance, prop)
     if (old_value != new_value):
       TicketHistory.objects.create(ticket=instance, field=prop, old_value=old_value, new_value=new_value)
+
+@receiver(post_save, sender=Project)
+def remove_owner_from_project_users(sender, instance=None, **kwargs):
+  user = instance.owner
+  team = instance.users.all()
+  if (user in team):
+    team.remove(user)
+    # instance.save()
