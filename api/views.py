@@ -8,9 +8,10 @@ from rest_framework import generics, permissions
 
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
+from django.contrib.auth import get_user_model
 
 from .models import Project, Ticket
-from .serializers import ProjectSerializer, TicketSerializer
+from .serializers import ProjectSerializer, TicketSerializer, UserSerializer
 
 # Create your views here.
 class CustomAuthToken(ObtainAuthToken):
@@ -58,3 +59,28 @@ class TicketListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         return Ticket.objects.filter(project=Project.objects.get(slug=self.kwargs['projectslug']))
+
+class SingleUserListAPIView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        User = get_user_model()
+        project = Project.objects.get(slug=self.kwargs['projectslug'])
+
+        owner = User.objects.filter(id=project.owner.id)
+        team_users = project.users.all()
+        single_users = User.objects.all().difference(team_users, owner)
+        
+        return single_users
+
+class TeamUserListAPIView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        User = get_user_model()
+        project = Project.objects.get(slug=self.kwargs['projectslug'])
+        return project.users.all()
+        
+        

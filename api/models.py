@@ -53,7 +53,6 @@ class Ticket(models.Model):
   def __str__(self):
     return self.title
 
-
 class TicketComment(models.Model):
   created = models.DateTimeField(auto_now_add=True)
   ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
