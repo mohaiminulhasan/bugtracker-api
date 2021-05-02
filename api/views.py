@@ -81,13 +81,32 @@ class SingleUserListAPIView(generics.ListAPIView):
         
         return single_users
 
-class TeamUserListAPIView(generics.ListAPIView):
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# class TeamUserListAPIView(generics.ListAPIView):
+#     serializer_class = UserSerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        project = Project.objects.get(slug=self.kwargs['projectslug'])
-        return project.users.all()
+#     def get_queryset(self):
+#         project = Project.objects.get(slug=self.kwargs['projectslug'])
+#         output = []
+#         for user in project.users.all():
+#             obj = { 'id': user.id, 'username': user.username, 'isAdmin': False }
+#             if (user in project.users.all()):
+#                 obj['isAdmin'] = True
+#             output.append(obj.copy())
+#         return output
+
+# use permission
+@api_view(http_method_names=['GET'])
+def team_user_list(request, projectslug):
+    project = Project.objects.get(slug=projectslug)
+    output = []
+    for user in project.users.all():
+        obj = { 'id': user.id, 'username': user.username, 'isAdmin': False }
+        if (user in project.admins.all()):
+            obj['isAdmin'] = True
+        output.append(obj.copy())
+    return Response(output) 
+
 
 # use permission
 @api_view(http_method_names=['PUT'])
@@ -106,5 +125,21 @@ def remove_from_team(request, username, projectslug):
     project = Project.objects.get(slug=projectslug)
     if (user in project.users.all()):
         project.users.remove(user)
+        if (user in project.admins.all()):
+            project.admins.remove(user)
         return Response({ 'response': 'OK', 'id': user.id })
+    return Response({ 'response': 'Invalid' })
+
+# user permission
+@api_view(http_method_names=['POST'])
+def toggle_as_admin(request, username, projectslug):
+    user = User.objects.get(username=username)
+    project = Project.objects.get(slug=projectslug)
+    if (user in project.users.all()):
+        if (user in project.admins.all()):
+            project.admins.remove(user)
+            return Response({ 'response': 'OK', 'isAdmin': False })
+        else:
+            project.admins.add(user)
+            return Response({ 'response': 'OK', 'isAdmin': True })
     return Response({ 'response': 'Invalid' })

@@ -7,9 +7,10 @@ from django.conf import settings
 class Project(models.Model):
   created = models.DateTimeField(auto_now_add=True)
   owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_projects')
+  admins = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
   title = models.CharField(max_length=255)
   slug = models.SlugField(max_length=255, blank=True, null=True)
-  users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
+  users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='teams')
 
   def __str__(self):
     return self.title

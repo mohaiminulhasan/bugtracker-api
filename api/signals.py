@@ -29,4 +29,3 @@ def remove_owner_from_project_users(sender, instance=None, **kwargs):
   team = instance.users.all()
   if (user in team):
     team.remove(user)
-    # instance.save()
