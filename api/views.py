@@ -61,12 +61,23 @@ class OwnedProjectListAPIView(generics.ListAPIView):
     def get_queryset(self):
         return Project.objects.filter(owner=self.request.user)
 
-class TicketListAPIView(generics.ListAPIView):
-    serializer_class = TicketSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# class TicketListAPIView(generics.ListAPIView):
+#     serializer_class = TicketSerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return Ticket.objects.filter(project=Project.objects.get(slug=self.kwargs['projectslug']))
+#     def get_queryset(self):
+#         return Ticket.objects.filter(project=Project.objects.get(slug=self.kwargs['projectslug']))
+
+# use permission
+@api_view(http_method_names=['GET'])
+def ticket_list_by_status(request, projectslug):
+    project = Project.objects.get(slug=projectslug)
+    output = {}
+    statuses = ['IB', 'EM', 'IP', 'TS', 'CO']
+    for status in statuses:
+        output[status] = TicketSerializer(Ticket.objects.filter(project=project, status=status), many=True).data
+    
+    return Response(output)
 
 class SingleUserListAPIView(generics.ListAPIView):
     serializer_class = UserSerializer
@@ -143,3 +154,8 @@ def toggle_as_admin(request, username, projectslug):
             project.admins.add(user)
             return Response({ 'response': 'OK', 'isAdmin': True })
     return Response({ 'response': 'Invalid' })
+
+class TicketUpdateAPIView(generics.UpdateAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+    permission_classes = [permissions.IsAuthenticated]
