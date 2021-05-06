@@ -6,7 +6,6 @@ urlpatterns = [
   path('api-token-auth/', views.CustomAuthToken.as_view()),
   path('projects/', views.ProjectsListAPIView.as_view()),
   path('owned/projects/', views.OwnedProjectListAPIView.as_view()),
-  # path('tickets/<slug:projectslug>/', views.TicketListAPIView.as_view()),
   path('tickets/in/<slug:projectslug>/', views.ticket_list_by_status),
   path('users/<slug:projectslug>/', views.SingleUserListAPIView.as_view()),
   path('teamusers/<slug:projectslug>/', views.team_user_list),
