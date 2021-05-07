@@ -164,3 +164,12 @@ class TicketRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+# user permission
+@api_view(http_method_names=['POST'])
+def create_ticket(request):
+    username, project, status, title = [request.data[i] for i in ('username', 'project', 'status', 'title')]
+    user = User.objects.get(username=username)
+    project = Project.objects.get(slug=project)
+    ticket = Ticket.objects.create(title=title, submitter=user, project=project, status=status)
+    return Response(TicketSerializer(ticket).data)

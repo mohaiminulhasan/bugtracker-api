@@ -14,4 +14,5 @@ urlpatterns = [
   path('toggle/<str:username>/to/<slug:projectslug>/as/admin/', views.toggle_as_admin),
   path('move/<int:pk>/', views.TicketUpdateAPIView.as_view()),
   path('tickets/<int:pk>/', views.TicketRetrieveAPIView.as_view()),
+  path('tickets/create/', views.create_ticket),
 ]

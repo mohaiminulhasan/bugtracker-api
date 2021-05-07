@@ -45,7 +45,7 @@ class Ticket(models.Model):
   title = models.CharField(max_length=30)
   description = models.CharField(max_length=255, blank=True, null=True)
   project = models.ForeignKey(Project, on_delete=models.CASCADE)
-  developer = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assignedtickets', on_delete=models.CASCADE)
+  developer = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assignedtickets', on_delete=models.CASCADE, blank=True, null=True)
   submitter = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='submittedtickets', on_delete=models.CASCADE)
   priority = models.CharField(max_length=1, choices=PRIORITY_CHOICES, default='M')
   status = models.CharField(max_length=2, choices=STATUS_CHOICES, default='IB')
