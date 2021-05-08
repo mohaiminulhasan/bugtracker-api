@@ -11,8 +11,13 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 
-from .models import Project, Ticket
-from .serializers import ProjectSerializer, TicketSerializer, UserSerializer
+from .models import Project, Ticket, TicketHistory, TicketComment
+from .serializers import (
+    ProjectSerializer,
+    TicketSerializer, 
+    UserSerializer, 
+    TicketHistorySerializer
+)
 
 # Create your views here.
 class CustomAuthToken(ObtainAuthToken):
@@ -173,3 +178,10 @@ def create_ticket(request):
     project = Project.objects.get(slug=project)
     ticket = Ticket.objects.create(title=title, submitter=user, project=project, status=status)
     return Response(TicketSerializer(ticket).data)
+
+class TicketHistoryListAPIView(generics.ListAPIView):
+    serializer_class = TicketHistorySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return TicketHistory.objects.filter(ticket_id=self.kwargs['pk'])
