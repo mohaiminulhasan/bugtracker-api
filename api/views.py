@@ -16,7 +16,8 @@ from .serializers import (
     ProjectSerializer,
     TicketSerializer, 
     UserSerializer, 
-    TicketHistorySerializer
+    TicketHistorySerializer,
+    TicketCommentSerializer
 )
 
 # Create your views here.
@@ -185,3 +186,11 @@ class TicketHistoryListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         return TicketHistory.objects.filter(ticket_id=self.kwargs['pk'])
+
+
+class TicketCommentListAPIView(generics.ListAPIView):
+    serializer_class = TicketCommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return TicketComment.objects.filter(ticket_id=self.kwargs['pk'])

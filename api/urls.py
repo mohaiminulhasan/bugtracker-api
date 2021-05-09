@@ -16,4 +16,5 @@ urlpatterns = [
   path('tickets/<int:pk>/', views.TicketRetrieveAPIView.as_view()),
   path('tickets/create/', views.create_ticket),
   path('tickets/<int:pk>/history/', views.TicketHistoryListAPIView.as_view()),
+  path('tickets/<int:pk>/comments/', views.TicketCommentListAPIView.as_view()),
 ]

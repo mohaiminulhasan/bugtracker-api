@@ -19,6 +19,16 @@ class TicketHistorySerializer(serializers.ModelSerializer):
     model = TicketHistory
     fields = ['field', 'old_value', 'new_value', 'created']
 
+class TicketCommentSerializer(serializers.ModelSerializer):
+  author = serializers.SlugRelatedField(
+    read_only=True,
+    slug_field='username'
+  )
+
+  class Meta:
+    model = TicketComment
+    fields = ['author', 'body', 'ticket', 'created']
+
 class UserSerializer(serializers.ModelSerializer):
   class Meta:
     model = User
