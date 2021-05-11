@@ -48,7 +48,7 @@ class CustomAuthToken(ObtainAuthToken):
             },
         })
 
-class ProjectsListAPIView(generics.ListAPIView):
+class ProjectsListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -60,19 +60,15 @@ class ProjectsListAPIView(generics.ListAPIView):
             key=attrgetter('created')
             )
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 class OwnedProjectListAPIView(generics.ListAPIView):
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Project.objects.filter(owner=self.request.user)
-
-# class TicketListAPIView(generics.ListAPIView):
-#     serializer_class = TicketSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get_queryset(self):
-#         return Ticket.objects.filter(project=Project.objects.get(slug=self.kwargs['projectslug']))
 
 # use permission
 @api_view(http_method_names=['GET'])
@@ -98,20 +94,6 @@ class SingleUserListAPIView(generics.ListAPIView):
         
         return single_users
 
-# class TeamUserListAPIView(generics.ListAPIView):
-#     serializer_class = UserSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get_queryset(self):
-#         project = Project.objects.get(slug=self.kwargs['projectslug'])
-#         output = []
-#         for user in project.users.all():
-#             obj = { 'id': user.id, 'username': user.username, 'isAdmin': False }
-#             if (user in project.users.all()):
-#                 obj['isAdmin'] = True
-#             output.append(obj.copy())
-#         return output
-
 # use permission
 @api_view(http_method_names=['GET'])
 def team_user_list(request, projectslug):
@@ -123,7 +105,6 @@ def team_user_list(request, projectslug):
             obj['isAdmin'] = True
         output.append(obj.copy())
     return Response(output) 
-
 
 # use permission
 @api_view(http_method_names=['PUT'])
@@ -187,10 +168,10 @@ class TicketHistoryListAPIView(generics.ListAPIView):
     def get_queryset(self):
         return TicketHistory.objects.filter(ticket_id=self.kwargs['pk'])
 
-
 class TicketCommentListAPIView(generics.ListAPIView):
     serializer_class = TicketCommentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return TicketComment.objects.filter(ticket_id=self.kwargs['pk'])
+

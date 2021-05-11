@@ -4,6 +4,11 @@ from .models import Project, Ticket, TicketHistory, TicketComment
 from django.contrib.auth.models import User
 
 
+class UserSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = User
+    fields = ['id', 'username']
+
 class ProjectSerializer(serializers.ModelSerializer):
   class Meta:
     model = Project
@@ -28,8 +33,3 @@ class TicketCommentSerializer(serializers.ModelSerializer):
   class Meta:
     model = TicketComment
     fields = ['author', 'body', 'ticket', 'created']
-
-class UserSerializer(serializers.ModelSerializer):
-  class Meta:
-    model = User
-    fields = ['id', 'username']

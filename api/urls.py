@@ -4,7 +4,7 @@ from . import views
 
 urlpatterns = [
   path('api-token-auth/', views.CustomAuthToken.as_view()),
-  path('projects/', views.ProjectsListAPIView.as_view()),
+  path('projects/', views.ProjectsListCreateAPIView.as_view()),
   path('owned/projects/', views.OwnedProjectListAPIView.as_view()),
   path('tickets/in/<slug:projectslug>/', views.ticket_list_by_status),
   path('users/<slug:projectslug>/', views.SingleUserListAPIView.as_view()),

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.utils.text import slugify
 
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
@@ -25,6 +26,9 @@ def log_history(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Project)
 def remove_owner_from_project_users(sender, instance=None, **kwargs):
+  if not instance.slug:
+    instance.slug = slugify(instance.title)
+    instance.save()
   user = instance.owner
   team = instance.users.all()
   if (user in team):

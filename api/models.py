@@ -6,7 +6,7 @@ from django.conf import settings
 # Create your models here.
 class Project(models.Model):
   created = models.DateTimeField(auto_now_add=True)
-  owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_projects')
+  owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_projects', blank=True, null=True)
   admins = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
   title = models.CharField(max_length=255)
   slug = models.SlugField(max_length=255, blank=True, null=True)
@@ -14,11 +14,6 @@ class Project(models.Model):
 
   def __str__(self):
     return self.title
-  
-  def save(self, *args, **kwargs):
-    self.slug = slugify(self.title)
-    super(Project, self).save(*args, *kwargs)
-
 
 class Ticket(models.Model):
   ''' If you add more fields to this class, please
