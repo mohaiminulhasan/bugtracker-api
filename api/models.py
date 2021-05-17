@@ -1,3 +1,4 @@
+import json
 from django.db import models
 from django.utils.text import slugify
 
@@ -14,6 +15,21 @@ class Project(models.Model):
 
   def __str__(self):
     return self.title
+
+class TicketOrder(models.Model):
+  project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
+  status = models.CharField(max_length=2)
+  tickets = models.TextField()
+
+  def get_tickets(self):
+    return json.loads(self.tickets)
+  
+  def set_tickets(self, data):
+    self.tickets = json.dumps(data)
+    self.save()
+
+  def __str__(self) -> str:
+      return self.tickets
 
 class Ticket(models.Model):
   ''' If you add more fields to this class, please

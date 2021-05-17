@@ -1,8 +1,10 @@
+import json
 from itertools import chain
 from operator import attrgetter
 
 from datetime import datetime
 from django.shortcuts import render
+import rest_framework
 from rest_framework.response import Response
 from rest_framework import generics, permissions
 from rest_framework.decorators import api_view
@@ -11,7 +13,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 
-from .models import Project, Ticket, TicketHistory, TicketComment
+from .models import Project, TicketOrder, Ticket, TicketHistory, TicketComment
 from .serializers import (
     ProjectSerializer,
     TicketSerializer, 
@@ -71,14 +73,45 @@ class OwnedProjectListAPIView(generics.ListAPIView):
         return Project.objects.filter(owner=self.request.user)
 
 # use permission
-@api_view(http_method_names=['GET'])
-def ticket_list_by_status(request, projectslug):
-    project = Project.objects.get(slug=projectslug)
-    output = {}
-    statuses = ['IB', 'EM', 'IP', 'TS', 'CO']
-    for status in statuses:
-        output[status] = TicketSerializer(Ticket.objects.filter(project=project, status=status), many=True).data
+# @api_view(http_method_names=['GET'])
+# def ticket_list_by_status(request, projectslug):
+#     project = Project.objects.get(slug=projectslug)
+#     output = {}
+#     statuses = ['IB', 'EM', 'IP', 'TS', 'CO']
+#     for status in statuses:
+#         output[status] = TicketSerializer(Ticket.objects.filter(project=project, status=status), many=True).data
     
+#     return Response(output)
+
+@api_view(http_method_names=['GET'])
+def ticket_list(request, projectslug):
+    statuses = {
+        'IB': 'Ice Box',
+        'EM': 'Emergency',
+        'IP': 'In Progress',
+        'TS': 'Testing',
+        'CO': 'Complete'
+    }
+
+    output = {
+        'tickets': {},
+        'columns': {}
+    }
+
+    project = Project.objects.get(slug=projectslug)
+    tickets = Ticket.objects.filter(project=project)
+    for ticket in tickets:
+        output['tickets'][ticket.id] = TicketSerializer(ticket).data
+
+    for key in statuses:
+        status_obj = TicketOrder.objects.get(project=project, status=key)
+        ticket_ids = Ticket.objects.filter(project=project, status=key).values_list('id', flat=True)
+        output['columns'][key] = {
+            'id': key,
+            'title': statuses[key],
+            'ticketIds': status_obj.get_tickets()
+        }
+
     return Response(output)
 
 class SingleUserListAPIView(generics.ListAPIView):
@@ -142,10 +175,28 @@ def toggle_as_admin(request, username, projectslug):
             return Response({ 'response': 'OK', 'isAdmin': True })
     return Response({ 'response': 'Invalid' })
 
-class TicketUpdateAPIView(generics.UpdateAPIView):
-    queryset = Ticket.objects.all()
-    serializer_class = TicketSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# class TicketUpdateAPIView(generics.UpdateAPIView):
+#     queryset = Ticket.objects.all()
+#     serializer_class = TicketSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+
+@api_view(http_method_names=['PATCH'])
+def move_ticket(request, source, sourceindex, destination, destinationindex):
+    project = Project.objects.get(slug=request.data['project'])
+    sourceObj = TicketOrder.objects.get(project=project, status=source)
+    sourceOrder = sourceObj.get_tickets()
+    destinationObj = TicketOrder.objects.get(project=project, status=destination)
+    destinationOrder = destinationObj.get_tickets()
+    print(sourceOrder)
+    print(destinationOrder)
+    try:
+        item = sourceOrder.pop(sourceindex)
+        destinationOrder.insert(destinationindex, item)
+        sourceObj.set_tickets(sourceOrder)
+        destinationObj.set_tickets(destinationOrder)
+        return Response({ 'source': sourceOrder, 'destination': destinationOrder })
+    except:
+        return Response({ 'response': 'Invalid' }, status=404)
 
 class TicketRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Ticket.objects.all()
