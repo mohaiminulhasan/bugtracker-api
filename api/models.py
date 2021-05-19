@@ -19,7 +19,7 @@ class Project(models.Model):
 class TicketOrder(models.Model):
   project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
   status = models.CharField(max_length=2)
-  tickets = models.TextField()
+  tickets = models.TextField(default='[]')
 
   def get_tickets(self):
     return json.loads(self.tickets)

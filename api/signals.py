@@ -1,11 +1,12 @@
+import json
 from django.conf import settings
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import pre_delete, post_save, pre_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-from .models import Ticket, TicketHistory, Project
+from .models import Ticket, TicketHistory, Project, TicketOrder
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
@@ -33,3 +34,14 @@ def remove_owner_from_project_users(sender, instance=None, **kwargs):
   team = instance.users.all()
   if (user in team):
     team.remove(user)
+
+@receiver(pre_delete, sender=Ticket)
+def remove_ticket_id_from_ticket_order(sender, instance, **kwargs):
+  objs = TicketOrder.objects.filter(project=instance.project)
+  for obj in objs:
+    tickets = json.loads(obj.tickets)
+    if instance.id in tickets:
+      tickets.remove(instance.id)
+      obj.tickets = json.dumps(tickets)
+      obj.save()
+      

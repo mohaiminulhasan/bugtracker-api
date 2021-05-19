@@ -104,8 +104,8 @@ def ticket_list(request, projectslug):
         output['tickets'][ticket.id] = TicketSerializer(ticket).data
 
     for key in statuses:
-        status_obj = TicketOrder.objects.get(project=project, status=key)
-        ticket_ids = Ticket.objects.filter(project=project, status=key).values_list('id', flat=True)
+        status_obj, created = TicketOrder.objects.get_or_create(project=project, status=key)
+        # ticket_ids = Ticket.objects.filter(project=project, status=key).values_list('id', flat=True)
         output['columns'][key] = {
             'id': key,
             'title': statuses[key],
@@ -185,18 +185,25 @@ def move_ticket(request, source, sourceindex, destination, destinationindex):
     project = Project.objects.get(slug=request.data['project'])
     sourceObj = TicketOrder.objects.get(project=project, status=source)
     sourceOrder = sourceObj.get_tickets()
-    destinationObj = TicketOrder.objects.get(project=project, status=destination)
-    destinationOrder = destinationObj.get_tickets()
-    print(sourceOrder)
-    print(destinationOrder)
-    try:
-        item = sourceOrder.pop(sourceindex)
-        destinationOrder.insert(destinationindex, item)
-        sourceObj.set_tickets(sourceOrder)
-        destinationObj.set_tickets(destinationOrder)
-        return Response({ 'source': sourceOrder, 'destination': destinationOrder })
-    except:
-        return Response({ 'response': 'Invalid' }, status=404)
+    if (source == destination):
+        try:
+            item = sourceOrder.pop(sourceindex)
+            sourceOrder.insert(destinationindex, item)
+            sourceObj.set_tickets(sourceOrder)
+            return (Response({ 'response': 'OK' }))
+        except:
+            return (Response({ 'response': 'Invalid' }))
+    else:
+        destinationObj = TicketOrder.objects.get(project=project, status=destination)
+        destinationOrder = destinationObj.get_tickets()
+        try:
+            item = sourceOrder.pop(sourceindex)
+            destinationOrder.insert(destinationindex, item)
+            sourceObj.set_tickets(sourceOrder)
+            destinationObj.set_tickets(destinationOrder)
+            return Response({ 'response': 'OK' })
+        except:
+            return Response({ 'response': 'Invalid' }, status=404)
 
 class TicketRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Ticket.objects.all()
@@ -210,7 +217,15 @@ def create_ticket(request):
     user = User.objects.get(username=username)
     project = Project.objects.get(slug=project)
     ticket = Ticket.objects.create(title=title, submitter=user, project=project, status=status)
-    return Response(TicketSerializer(ticket).data)
+
+    ticketorder = TicketOrder.objects.get(project=project, status=status)
+    data = ticketorder.get_tickets()
+    data.insert(0, ticket.id)
+    ticketorder.set_tickets(data)
+    return Response({
+        'ticket': TicketSerializer(ticket).data,
+        'order': data
+    })
 
 class TicketHistoryListAPIView(generics.ListAPIView):
     serializer_class = TicketHistorySerializer
