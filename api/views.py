@@ -241,3 +241,12 @@ class TicketCommentListAPIView(generics.ListAPIView):
     def get_queryset(self):
         return TicketComment.objects.filter(ticket_id=self.kwargs['pk'])
 
+class TicketDeleteAPIView(generics.DestroyAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class TicketUpdateAPIView(generics.UpdateAPIView):
+    queryset = Ticket.objects.all()
+    serializer_class = TicketSerializer
+    permission_classes = [permissions.IsAuthenticated]
