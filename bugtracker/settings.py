@@ -1,12 +1,27 @@
+import json
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
+
+with open('secrets.json') as f:
+    secrets = json.loads(f.read())
+
+def get_secret(setting, secrets=secrets):
+    try:
+        return secrets[setting]
+    except KeyError:
+        error_msg = 'Set the {0} variable'.format(setting)
+        raise ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-98w6p1w*+&)m%tv_z3upj1hu-m8+p(@g4&gcm+smijt569!ec2'
+# SECRET_KEY = 'django-insecure-98w6p1w*+&)m%tv_z3upj1hu-m8+p(@g4&gcm+smijt569!ec2'
+SECRET_KEY = get_secret('SECRET_KEY')
 
-DEBUG = True
+# DEBUG = True
+DEBUG = get_secret('DEBUG')
 
-ALLOWED_HOSTS = ['minigunnr.pythonanywhere.com']
+# ALLOWED_HOSTS = ['127.0.0.1', 'minigunnr.pythonanywhere.com']
+ALLOWED_HOSTS = get_secret('ALLOWED_HOSTS')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
