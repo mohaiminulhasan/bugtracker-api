@@ -1,8 +1,10 @@
-import json
+import os, json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
-with open('secrets.json') as f:
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+with open(os.path.join(BASE_DIR, 'secrets.json')) as f:
     secrets = json.loads(f.read())
 
 def get_secret(setting, secrets=secrets):
@@ -12,7 +14,6 @@ def get_secret(setting, secrets=secrets):
         error_msg = 'Set the {0} variable'.format(setting)
         raise ImproperlyConfigured
 
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECRET_KEY = 'django-insecure-98w6p1w*+&)m%tv_z3upj1hu-m8+p(@g4&gcm+smijt569!ec2'
 SECRET_KEY = get_secret('SECRET_KEY')
