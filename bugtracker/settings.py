@@ -12,7 +12,7 @@ def get_secret(setting, secrets=secrets):
         return secrets[setting]
     except KeyError:
         error_msg = 'Set the {0} variable'.format(setting)
-        raise ImproperlyConfigured
+        raise ImproperlyConfigured(error_msg)
 
 
 # SECRET_KEY = 'django-insecure-98w6p1w*+&)m%tv_z3upj1hu-m8+p(@g4&gcm+smijt569!ec2'
