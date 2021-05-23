@@ -4,7 +4,8 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-with open(os.path.join(BASE_DIR, 'secrets.json')) as f:
+# with open(os.path.join(BASE_DIR, 'secrets.json')) as f:
+with open('/home/minigunnr/bugtracker-api/secrets.json')) as f:
     secrets = json.loads(f.read())
 
 def get_secret(setting, secrets=secrets):
