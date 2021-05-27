@@ -65,6 +65,13 @@ class ProjectsListCreateAPIView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+class ProjectDeleteView(generics.DestroyAPIView):
+    lookup_field = 'slug'
+    lookup_url_kwarg = 'projectslug'
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 class OwnedProjectListAPIView(generics.ListAPIView):
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -99,6 +106,11 @@ def ticket_list(request, projectslug):
     }
 
     project = Project.objects.get(slug=projectslug)
+    output['project'] = {
+        'id': project.id,
+        'title': project.title,
+        'created': project.created.date()
+    }
     tickets = Ticket.objects.filter(project=project)
     for ticket in tickets:
         output['tickets'][ticket.id] = TicketSerializer(ticket).data
