@@ -21,7 +21,11 @@ def log_history(sender, instance, **kwargs):
     return None
   for prop in ['title', 'description', 'project', 'developer', 'submitter', 'priority', 'status', 'ticket_type']:
     old_value = getattr(old, prop)
+    if old_value is None:
+      old_value = ''
     new_value = getattr(instance, prop)
+    if new_value is None:
+      new_value = ''
     if (old_value != new_value):
       TicketHistory.objects.create(ticket=instance, field=prop, old_value=old_value, new_value=new_value)
 

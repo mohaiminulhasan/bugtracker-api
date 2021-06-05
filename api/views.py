@@ -1,10 +1,8 @@
-import json
 from itertools import chain
 from operator import attrgetter
 
 from datetime import datetime
 from django.shortcuts import render
-import rest_framework
 from rest_framework.response import Response
 from rest_framework import generics, permissions
 from rest_framework.decorators import api_view
@@ -56,9 +54,10 @@ class ProjectsListCreateAPIView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         owned_projects = Project.objects.filter(owner=self.request.user)
-        assigned_projects = self.request.user.project_set.all()
+        moderated_projects = self.request.user.project_set.all()
+        assigned_projects = self.request.user.teams.all()
         return sorted(
-            chain(owned_projects, assigned_projects),
+            chain(owned_projects, moderated_projects, assigned_projects),
             key=attrgetter('created')
             )
 
@@ -111,9 +110,21 @@ def ticket_list(request, projectslug):
         'title': project.title,
         'created': project.created.date()
     }
-    tickets = Ticket.objects.filter(project=project)
+    if (request.user != project.owner and request.user not in project.admins.all()):
+        tickets = Ticket.objects.filter(project=project, developer=request.user)
+    else:
+        tickets = Ticket.objects.filter(project=project)
+
+    # isDragDisabled = 'false'
+    # if (request.user != project.owner and request.user not in project.admins.all()):
+    #     for ticket in tickets:
+    #         output['tickets'][ticket.id] = TicketSerializer(ticket).data
+    #         isDragDisabled = 'false' if ticket.developer == request.user else 'true'
+    #         output['tickets'][ticket.id]['isDragDisabled'] = isDragDisabled
+    # else:
     for ticket in tickets:
         output['tickets'][ticket.id] = TicketSerializer(ticket).data
+            # output['tickets'][ticket.id]['isDragDisabled'] = isDragDisabled
 
     for key in statuses:
         status_obj, created = TicketOrder.objects.get_or_create(project=project, status=key)
