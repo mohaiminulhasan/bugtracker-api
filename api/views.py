@@ -56,10 +56,11 @@ class ProjectsListCreateAPIView(generics.ListCreateAPIView):
         owned_projects = Project.objects.filter(owner=self.request.user)
         moderated_projects = self.request.user.project_set.all()
         assigned_projects = self.request.user.teams.all()
-        return sorted(
+        output = sorted(
             chain(owned_projects, moderated_projects, assigned_projects),
             key=attrgetter('created')
             )
+        return list(set(output))
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
@@ -108,7 +109,8 @@ def ticket_list(request, projectslug):
     output['project'] = {
         'id': project.id,
         'title': project.title,
-        'created': project.created.date()
+        'created': project.created.date(),
+        'settings': 'false' if request.user != project.owner and not request.user in project.admins.all() else 'true'
     }
     if (request.user != project.owner and request.user not in project.admins.all()):
         tickets = Ticket.objects.filter(project=project, developer=request.user)
