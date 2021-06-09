@@ -1,3 +1,4 @@
+from django.db.models.fields import CharField
 from rest_framework import serializers
 
 from .models import Project, Ticket, TicketHistory, TicketComment
@@ -15,9 +16,11 @@ class ProjectSerializer(serializers.ModelSerializer):
     fields = ['id', 'created', 'owner', 'title', 'slug']
 
 class TicketSerializer(serializers.ModelSerializer):
+  assignee = serializers.CharField(source='get_assignee')
+
   class Meta:
     model = Ticket
-    fields = ['id', 'title', 'description', 'developer', 'submitter', 'priority', 'status']
+    fields = ['id', 'title', 'description', 'developer', 'assignee', 'submitter', 'priority', 'status']
 
 class TicketHistorySerializer(serializers.ModelSerializer):
   class Meta:

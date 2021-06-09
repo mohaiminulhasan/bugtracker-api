@@ -64,6 +64,11 @@ class Ticket(models.Model):
 
   def __str__(self):
     return self.title
+  
+  def get_assignee(self):
+    if (self.developer):
+      return self.developer.username
+    return None
 
 class TicketComment(models.Model):
   created = models.DateTimeField(auto_now_add=True)

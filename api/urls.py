@@ -8,6 +8,7 @@ urlpatterns = [
   path('projects/<str:projectslug>/delete/', views.ProjectDeleteView.as_view()),
   path('owned/projects/', views.OwnedProjectListAPIView.as_view()),
   # path('tickets/in/<slug:projectslug>/', views.ticket_list_by_status),
+  path('users/', views.UserListView.as_view()),
   path('users/<slug:projectslug>/', views.SingleUserListAPIView.as_view()),
   path('teamusers/<slug:projectslug>/', views.team_user_list),
   path('add/<str:username>/to/team/<slug:projectslug>/', views.add_to_team),
@@ -22,4 +23,5 @@ urlpatterns = [
   path('tickets/<int:pk>/comments/', views.TicketCommentListAPIView.as_view()),
   path('tickets/<int:pk>/update/', views.TicketUpdateAPIView.as_view()),
   path('tickets/<int:pk>/delete/', views.TicketDeleteAPIView.as_view()),
+  path('is/user/developer/in/<slug:projectslug>/', views.is_user_developer),
 ]

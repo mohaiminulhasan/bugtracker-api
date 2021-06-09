@@ -2,6 +2,8 @@ from itertools import chain
 from operator import attrgetter
 
 from datetime import datetime
+from django.db.models import query
+from django.http.response import HttpResponse
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import generics, permissions
@@ -78,6 +80,11 @@ class OwnedProjectListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         return Project.objects.filter(owner=self.request.user)
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 # use permission
 # @api_view(http_method_names=['GET'])
@@ -275,3 +282,13 @@ class TicketUpdateAPIView(generics.UpdateAPIView):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+@api_view(http_method_names=['GET'])
+def is_user_developer(request, projectslug):
+    output = 'true'
+    project = Project.objects.get(slug=projectslug)
+    print(request.user)
+    print(project.owner)
+    if (request.user == project.owner or request.user in project.admins.all()):
+        output = 'false'
+    return HttpResponse(output)
